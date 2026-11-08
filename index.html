@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>LogiKit · Ficha QR</title>
+<style>
+  :root { --tinta:#17212b; --suave:#5b6876; --linea:#e2e7ec; --fondo:#eef2f5; --panel:#ffffff;
+          --marca:#1f5f99; --marca-f:#e7f0f8; --A:#1d7a46; --A-f:#e5f4eb; --B:#946200; --B-f:#fff3d1;
+          --C:#6b3fa0; --C-f:#f1eaf8; --err:#b3261e; }
+  @media (prefers-color-scheme: dark) {
+    :root { --tinta:#e6ebf0; --suave:#9aa7b4; --linea:#2b3640; --fondo:#0f161c; --panel:#18222b;
+            --marca:#6fb1ff; --marca-f:#1b2b3b; --A:#5fd393; --A-f:#173226; --B:#f2c25b; --B-f:#352a12;
+            --C:#c3a2ee; --C-f:#2a2038; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--fondo); color:var(--tinta);
+         font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  .marco { max-width:560px; margin:0 auto; padding:16px; }
+  .marca { display:flex; align-items:center; gap:10px; margin:6px 2px 14px; color:var(--suave);
+           font-size:13px; letter-spacing:.4px; text-transform:uppercase; }
+  .marca svg { flex:0 0 auto; }
+  .marca b { color:var(--tinta); letter-spacing:.2px; text-transform:none; font-size:16px; }
+  .ficha { background:var(--panel); border:1px solid var(--linea); border-radius:14px; overflow:hidden;
+           box-shadow:0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(16,32,48,.06); }
+  .cabeza { padding:18px 18px 14px; border-bottom:1px solid var(--linea); }
+  .tipo { display:inline-block; font-size:12px; font-weight:700; letter-spacing:.5px; text-transform:uppercase;
+          color:var(--marca); background:var(--marca-f); padding:3px 10px; border-radius:20px; }
+  h1 { margin:10px 0 2px; font-size:24px; font-variant-numeric:tabular-nums; letter-spacing:.3px; }
+  .sub { color:var(--suave); font-size:15px; }
+  dl { margin:0; padding:6px 18px 10px; }
+  .fila { display:grid; grid-template-columns:42% 1fr; gap:10px; padding:10px 0; border-bottom:1px solid var(--linea); }
+  .fila:last-child { border-bottom:none; }
+  dt { color:var(--suave); font-size:14px; }
+  dd { margin:0; font-weight:600; overflow-wrap:anywhere; }
+  .clase { display:inline-block; padding:2px 10px; border-radius:20px; font-size:13px; font-weight:700; }
+  .clase.A { color:var(--A); background:var(--A-f); } .clase.B { color:var(--B); background:var(--B-f); }
+  .clase.C { color:var(--C); background:var(--C-f); }
+  h2 { font-size:14px; letter-spacing:.4px; text-transform:uppercase; color:var(--suave); margin:0;
+       padding:14px 18px 4px; border-top:1px solid var(--linea); }
+  table { width:100%; border-collapse:collapse; font-size:14.5px; }
+  td { padding:7px 18px; border-bottom:1px solid var(--linea); }
+  td.q { text-align:right; font-weight:700; font-variant-numeric:tabular-nums; width:56px; }
+  tr:last-child td { border-bottom:none; }
+  .pie { color:var(--suave); font-size:12.5px; padding:12px 4px; text-align:center; }
+  .error { padding:22px 18px; color:var(--err); font-weight:600; }
+</style>
+</head>
+<body>
+<div class="marco">
+  <div class="marca">
+    <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true">
+      <rect x="1" y="1" width="24" height="24" rx="6" fill="#1f5f99"/>
+      <rect x="6" y="6" width="5" height="5" fill="#fff"/><rect x="15" y="6" width="5" height="5" fill="#fff"/>
+      <rect x="6" y="15" width="5" height="5" fill="#fff"/><rect x="15" y="15" width="2" height="2" fill="#fff"/>
+      <rect x="18" y="18" width="2" height="2" fill="#fff"/>
+    </svg>
+    <span><b>LogiKit</b> · Ficha de identificación</span>
+  </div>
+  <div class="ficha" id="ficha"></div>
+  <div class="pie" id="pie"></div>
+</div>
+
+<script>
+const CAT = {"bom": {"E": [["CR100", 8], ["CC100", 4], ["LHB", 2], ["EAZ", 2], ["ENE", 1], ["BOR", 2], ["TAJ", 1], ["LCO12", 1], ["REG30", 1], ["PEG20", 1], ["TIJ", 1], ["CAR", 1], ["EMPQR", 1], ["ESC", 1], ["TRA", 1], ["COM", 1], ["RES", 2], ["NAD", 1], ["MAR12", 1], ["BRO", 1], ["BLD", 1], ["ACU12", 1], ["PIN3", 1], ["MIC6", 1], ["PMN", 1], ["TMN", 1], ["CTO", 1]], "P": [["CR100", 6], ["CC100", 2], ["LHB", 2], ["EAZ", 2], ["ENE", 1], ["BOR", 2], ["TAJ", 1], ["LCO12", 1], ["REG30", 1], ["PEG20", 1], ["TIJ", 1], ["CAR", 1], ["EMPQR", 1]], "S": [["CR100", 8], ["CC100", 2], ["LHB", 2], ["EAZ", 2], ["ENE", 1], ["BOR", 2], ["TAJ", 1], ["LCO12", 1], ["REG30", 1], ["PEG20", 1], ["TIJ", 1], ["CAR", 1], ["EMPQR", 1], ["ESC", 1], ["TRA", 1], ["COM", 1], ["RES", 2], ["NAD", 1], ["MAR12", 1], ["BRO", 1]]}, "kits": {"E": "Kit E \u2014 Integral creativo", "P": "Kit P \u2014 Esencial", "S": "Kit S \u2014 Plus"}, "picking": {"PIC-A-01": "CR100", "PIC-A-02": "CC100", "PIC-A-03": "BOR", "PIC-A-04": "EAZ", "PIC-A-05": "LHB", "PIC-A-06": "CAR", "PIC-A-07": "EMPQR", "PIC-A-08": "ENE", "PIC-A-09": "LCO12", "PIC-A-10": "PEG20", "PIC-A-11": "REG30", "PIC-A-12": "TAJ", "PIC-A-13": "TIJ", "PIC-B-01": "RES", "PIC-B-02": "BRO", "PIC-B-03": "COM", "PIC-B-04": "ESC", "PIC-B-05": "MAR12", "PIC-B-06": "NAD", "PIC-B-07": "TRA", "PIC-C-01": "ACU12", "PIC-C-02": "BLD", "PIC-C-03": "CTO", "PIC-C-04": "MIC6", "PIC-C-05": "PIN3", "PIC-C-06": "PMN", "PIC-C-07": "TMN"}, "skus": {"ACU12": ["Caja de 12 acuarelas escolares", "C", "PIC-C-01"], "BLD": ["Bloc de dibujo carta", "C", "PIC-C-02"], "BOR": ["Borrador", "A", "PIC-A-03"], "BRO": ["Bol\u00edgrafo rojo", "B", "PIC-B-02"], "CAR": ["Carpeta con el\u00e1stico", "A", "PIC-A-06"], "CC100": ["Cuaderno cuadriculado 100 hojas", "A", "PIC-A-02"], "COM": ["Comp\u00e1s escolar", "B", "PIC-B-03"], "CR100": ["Cuaderno rayado 100 hojas", "A", "PIC-A-01"], "CTO": ["Cartuchera organizadora", "C", "PIC-C-03"], "EAZ": ["Esfero azul", "A", "PIC-A-04"], "EMPQR": ["Empaque individual con QR", "A", "PIC-A-07"], "ENE": ["Esfero negro", "A", "PIC-A-08"], "ESC": ["Juego de escuadras", "B", "PIC-B-04"], "LCO12": ["Caja 12 l\u00e1pices de colores", "A", "PIC-A-09"], "LHB": ["L\u00e1piz HB", "A", "PIC-A-05"], "MAR12": ["Caja de 12 marcadores escolares", "B", "PIC-B-05"], "MIC6": ["Caja de 6 micropuntas", "C", "PIC-C-04"], "NAD": ["Notas adhesivas (paquete)", "B", "PIC-B-06"], "PEG20": ["Pegante en barra 20 g", "A", "PIC-A-10"], "PIN3": ["Juego de 3 pinceles", "C", "PIC-C-05"], "PMN": ["Portaminas 0,7 mm", "C", "PIC-C-06"], "REG30": ["Regla de 30 cm", "A", "PIC-A-11"], "RES": ["Resaltador", "B", "PIC-B-01"], "TAJ": ["Tajal\u00e1piz con dep\u00f3sito", "A", "PIC-A-12"], "TIJ": ["Tijeras escolares punta redonda", "A", "PIC-A-13"], "TMN": ["Tubo de minas", "C", "PIC-C-07"], "TRA": ["Transportador 180\u00b0", "B", "PIC-B-07"]}, "zonas": {"BUFFER": "Buffer de kits terminados (reserva de prealistamiento)", "DESPACHO": "Consolidaci\u00f3n y despacho por ruta", "DEVOLUCIONES": "Devoluciones y cuarentena", "LINEA": "C\u00e9lula de ensamble: separaci\u00f3n, armado, inspecci\u00f3n y empaque", "PICKING": "Ubicaci\u00f3n fija de picking (alimenta las c\u00e9lulas de ensamble)", "RECEPCION": "Muelle de recepci\u00f3n e inspecci\u00f3n de cajas de embalaje del proveedor", "RESERVA": "Rack de reserva de componentes"}};
+const TIPOS = {CMP:"Caja de embalaje (proveedor)", UBI:"Ubicación", KIT:"Kit terminado", PED:"Pedido", OPR:"Operario"};
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fila = (k, v, crudo) => (v === "" || v == null) ? "" :
+  `<div class="fila"><dt>${esc(k)}</dt><dd>${crudo ? v : esc(v)}</dd></div>`;
+const clase = c => `<span class="clase ${esc(c)}">Clase ${esc(c)}</span>`;
+
+function leer() {
+  const h = location.hash.replace(/^#/, "");
+  const p = h.split("~").map(x => decodeURIComponent(x.replace(/\+/g, " ")));
+  if (p[0] !== "v1" || !TIPOS[p[1]] || !p[2]) return null;
+  return { tipo: p[1], id: p[2], c: p.slice(3) };
+}
+
+function ubicacion(id) {
+  const zona = {REC:"RECEPCION", RES:"RESERVA", PIC:"PICKING", LIN:"LINEA", BUF:"BUFFER",
+                DES:"DESPACHO", DEV:"DEVOLUCIONES"}[id.split("-")[0]] || "";
+  let filas = fila("Zona", zona) + fila("Uso", CAT.zonas[zona] || "");
+  let m = id.match(/^RES-([ABC])(\d+)-N(\d)$/);
+  if (m) {
+    filas += fila("Fila · módulo · nivel", `${m[1]} · ${+m[2]} · ${m[3]}${m[3] === "1" ? " (zona dorada)" : ""}`);
+    filas += fila("Admite", clase(m[1]) + " " + esc(Object.keys(CAT.skus).filter(s => CAT.skus[s][1] === m[1]).join(", ")), true);
+  }
+  const sku = CAT.picking[id];
+  if (sku) filas += fila("SKU asignado", sku) + fila("Producto", CAT.skus[sku][0]) + fila("Clasificación", clase(CAT.skus[sku][1]), true);
+  m = id.match(/^DES-(R\d)$/); if (m) filas += fila("Ruta", m[1]);
+  return { sub: zona ? "Zona " + zona.toLowerCase() : "", filas };
+}
+
+function render() {
+  const d = leer();
+  const ficha = document.getElementById("ficha");
+  if (!d) {
+    ficha.innerHTML = `<div class="error">Este enlace no contiene una ficha LogiKit válida.<br>
+      <span style="font-weight:400;color:var(--suave)">Escanee de nuevo la etiqueta QR.</span></div>`;
+    return;
+  }
+  let sub = "", filas = "", extra = "", emitido = d.c[d.c.length - 1];
+  if (d.tipo === "CMP") {
+    const [sku, lote, cant] = d.c, info = CAT.skus[sku] || ["SKU desconocido", "", ""];
+    sub = info[0];
+    filas = fila("SKU", sku) + fila("Clasificación ABC", clase(info[1]), true) + fila("Lote", lote) +
+            fila("Cantidad por caja", Number(cant).toLocaleString("es-CO") + " und") +
+            fila("Ubicación de picking", info[2]) + fila("Fila de reserva", "Fila " + info[1]);
+  } else if (d.tipo === "KIT") {
+    const t = d.id.split("-")[1], bom = CAT.bom[t] || [];
+    const piezas = bom.reduce((a, [, q]) => a + q, 0);
+    sub = CAT.kits[t] || "";
+    filas = fila("Tipo de kit", t) + fila("Total de piezas", piezas) + fila("Armado", d.c[0]) + fila("Célula de ensamble", d.c[1]);
+    extra = `<h2>Contenido del kit</h2><table>` + bom.map(([s, q]) =>
+      `<tr><td>${esc((CAT.skus[s] || [s])[0])}</td><td class="q">${q}</td></tr>`).join("") + `</table>`;
+  } else if (d.tipo === "UBI") {
+    ({ sub, filas } = ubicacion(d.id));
+  } else if (d.tipo === "PED") {
+    const [colegio, sede, ruta, p, s, e, fecha, desde, hasta] = d.c;
+    sub = colegio + (sede ? " · " + sede : "");
+    filas = fila("Ruta", ruta) + fila("Kits P · Esencial", p) + fila("Kits S · Plus", s) +
+            fila("Kits E · Integral", e) + fila("Total de kits", (+p) + (+s) + (+e)) +
+            fila("Fecha de entrega", fecha) + ((desde || hasta) ? fila("Ventana de entrega", (desde || "") + " – " + (hasta || "")) : "");
+  } else if (d.tipo === "OPR") {
+    sub = d.c[0]; filas = fila("Rol", d.c[1]);
+  }
+  ficha.innerHTML = `<div class="cabeza"><span class="tipo">${esc(TIPOS[d.tipo])}</span>
+      <h1>${esc(d.id)}</h1><div class="sub">${esc(sub)}</div></div><dl>${filas}</dl>${extra}`;
+  document.getElementById("pie").textContent =
+    "Ficha de solo lectura · datos de la etiqueta emitida el " + emitido + " · Proyecto Integrador de Logística";
+  document.title = "LogiKit · " + d.id;
+}
+render();
+window.addEventListener("hashchange", render);
+</script>
+</body>
+</html>
